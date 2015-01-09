@@ -1,0 +1,10 @@
+{
+    "name": "NodeCraft",
+    "version": "0.0.1",
+    "description": "A NodeJS version of Minecraft!",
+    "dependencies": {
+        "colors": "*",
+		"varint": "*",
+        "moment": "*"
+    }
+}
