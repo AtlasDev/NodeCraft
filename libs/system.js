@@ -1,5 +1,5 @@
-var colors = require('colors'),
-    moment = require('moment');
+var colors = require('colors');
+var moment = require('moment');
     
 colors.setTheme({
     debug: 'cyan',

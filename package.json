@@ -5,6 +5,7 @@
     "dependencies": {
         "colors": "*",
 		"varint": "*",
+		"requestify": "*",
         "moment": "*"
     }
 }
