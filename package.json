@@ -6,6 +6,7 @@
         "colors": "*",
 		"varint": "*",
 		"requestify": "*",
-        "moment": "*"
+        "moment": "*",
+        "bufferpack": "*"
     }
 }
