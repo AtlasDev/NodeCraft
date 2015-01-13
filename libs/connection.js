@@ -1,51 +1,30 @@
-var system = require("./system.js");
-var requestify = require("requestify");
 var varint = require("varint");
 var net = require("net");
 var bufferpack = require("bufferpack");
+var util = require("util");
+var events = require("events");
 
-var _loggedin = false;
-var _username;
-var _connection;
-
-var isLoggedin = function() {
-	return _loggedin;
+function connection() {
+    var _connection;
+    var _mode = 'handshake';
+    events.EventEmitter.call(this);
 }
-exports.isLoggedin = isLoggedin;
 
-var getUsername = function() {
-	return _username;
-}
-exports.getUsername = getUsername;
+util.inherits(connection, events.EventEmitter);
 
-var setUsername = function(username) {
-	_username = username;
-	return true;
-}
-exports.setUsername = setUsername;
-
-var login = function(username, password) {
-	requestify.post('https://api.mojang.com/users/profiles/minecraft/SilentsKiller', {
-		data: "test"
-    }).then(function(response) {
-        console.log(response.body);
-    });
-}
-exports.login = login;
-
-var connect = function(port, host, callback) {
-	_connection = new net.Socket();
+connection.prototype.connect = function(port, host, callback) {
+    var self = this;
+    _connection = new net.Socket();
     _connection.connect(port, host, function() {
-        system.log('Connected to the server, authenticating now.');
+        console.log('Connected to the server, authenticating now.');
         
         var PACKET_HEAD = new Buffer([
-            0, // Packet ID 0
-            47 // Version 4 (1.7.2), 5 is 1.7.6
+            0, // Packet ID
+            47 // Protocol version, 47 from 1.8
         ]);
         var PACKET_PORT = new Buffer(2);
         var PACKET_NEXTSTATE = new Buffer([1]);
         var PACKET_STATUS_REQ = new Buffer([1, 0]);
-
 
         host = new Buffer(host);
         var addrLen = new Buffer(varint.encode(host.length));
@@ -94,17 +73,24 @@ var connect = function(port, host, callback) {
 
         _connection.write(packet);
         _connection.write(packData('\x00'));
-        
     });
     _connection.on('error', function(err){
-        system.log(err);
-        _connection.end();
+        var error = new Error(err.code);
+        error.mode = err.syscall;
+        if(err.syscall === 'connect') {
+            self.emit("test");
+            callback(error);
+        } else {
+            console.log('Uncaught error in NodeCraft, please report the following:');
+            console.log(error);
+            console.log('Exiting NOW!');
+            process.exit(1);
+        }
     });
     _connection.on('data', function(data){
-        system.log(data);
+        console.log(data);
     });
 };
-exports.connect = connect;
 
 function packData(data) {
     return varint.encode(data.length) + data;
@@ -113,3 +99,4 @@ function packData(data) {
 function packPort(data) {
     return bufferpack.pack('>H', data.toString());
 }
+module.exports = connection;
